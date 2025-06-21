@@ -1,4 +1,73 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pymongo import MongoClient
+from pydantic import BaseModel
+from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+app = FastAPI()
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# MongoDB connection
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+client = MongoClient(MONGO_URI)
+db = client.pisapack
+carts_collection = db.carts
+
+class CartItem(BaseModel):
+    name: str
+    price: float
+    image: str
+    category: str
+
+class CartRequest(BaseModel):
+    items: list[CartItem]
+    subtotal: str
+    total: str
+    savings: str
+    timestamp: str
+
+@app.post("/save-cart")
+async def save_cart(cart: CartRequest):
+    try:
+        # Convert to dictionary and add processed timestamp
+        cart_data = cart.dict()
+        cart_data["processed_at"] = datetime.now().isoformat()
+        
+        # Insert into MongoDB
+        result = carts_collection.insert_one(cart_data)
+        
+        return {
+            "status": "success",
+            "cart_id": str(result.inserted_id),
+            "message": "Cart saved successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/")
+async def root():
+    return {"message": "PisaPack Cart API is running"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    
+
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
@@ -72,72 +141,7 @@ async def get_orders():
 
 
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pymongo import MongoClient
-from pydantic import BaseModel
-from datetime import datetime
-import os
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
-
-app = FastAPI()
-
-# CORS configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# MongoDB connection
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-client = MongoClient(MONGO_URI)
-db = client.pisapack
-carts_collection = db.carts
-
-class CartItem(BaseModel):
-    name: str
-    price: float
-    image: str
-    category: str
-
-class CartRequest(BaseModel):
-    items: list[CartItem]
-    subtotal: str
-    total: str
-    savings: str
-    timestamp: str
-
-@app.post("/save-cart")
-async def save_cart(cart: CartRequest):
-    try:
-        # Convert to dictionary and add processed timestamp
-        cart_data = cart.dict()
-        cart_data["processed_at"] = datetime.now().isoformat()
-        
-        # Insert into MongoDB
-        result = carts_collection.insert_one(cart_data)
-        
-        return {
-            "status": "success",
-            "cart_id": str(result.inserted_id),
-            "message": "Cart saved successfully"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/")
-async def root():
-    return {"message": "PisaPack Cart API is running"}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 
