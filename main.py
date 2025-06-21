@@ -138,3 +138,97 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
+
+
+
+
+
+# from fastapi import FastAPI, HTTPException
+# from fastapi.middleware.cors import CORSMiddleware
+# from pymongo import MongoClient
+# from pydantic import BaseModel, Field, validator
+# from datetime import datetime
+# from typing import List
+# import os
+# from dotenv import load_dotenv
+
+# load_dotenv()
+
+# app = FastAPI()
+
+# # CORS configuration
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # MongoDB connection
+# MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+# client = MongoClient(MONGO_URI)
+# db = client.pisapack
+# orders_collection = db.orders  # Changed to orders collection
+
+# class CartItem(BaseModel):
+#     name: str = Field(..., min_length=1)
+#     price: float = Field(..., gt=0)
+#     image: str
+#     category: str = "uncategorized"
+#     quantity: int = Field(1, gt=0)
+
+# class CartRequest(BaseModel):
+#     items: List[CartItem]
+#     subtotal: str
+#     total: str
+#     savings: str
+#     timestamp: str
+
+#     @validator('items')
+#     def validate_items(cls, v):
+#         if not v:
+#             raise ValueError("At least one item is required")
+#         return v
+
+# @app.post("/save-cart")
+# async def save_cart(cart: CartRequest):
+#     try:
+#         cart_data = cart.dict()
+        
+#         # Convert string timestamps to datetime objects
+#         cart_data["timestamp"] = datetime.fromisoformat(cart_data["timestamp"].replace("Z", ""))
+#         cart_data["processed_at"] = datetime.utcnow()
+        
+#         # Calculate numerical values from strings
+#         cart_data["subtotal_value"] = float(cart_data["subtotal"].replace("₹", "").replace(",", ""))
+#         cart_data["total_value"] = float(cart_data["total"].replace("₹", "").replace(",", ""))
+#         cart_data["savings_value"] = float(cart_data["savings"].replace("₹", "").replace(",", ""))
+        
+#         # Insert into MongoDB
+#         result = orders_collection.insert_one(cart_data)
+        
+#         return {
+#             "status": "success",
+#             "cart_id": str(result.inserted_id),
+#             "message": "Cart saved successfully",
+#             "items_count": len(cart.items)
+#         }
+        
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=400,
+#             detail=f"Error saving cart: {str(e)}"
+#         )
+
+# @app.get("/")
+# async def root():
+#     return {"message": "PisaPack Cart API is running"}
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
