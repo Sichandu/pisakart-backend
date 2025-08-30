@@ -32,7 +32,7 @@ app.add_middleware(
 
 # MongoDB setup
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-# # MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://pisakart_admin:pisakart2025@cluster0.mongodb.net/PISA")
+# MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://pisakart_admin:pisakart2025@cluster0.mongodb.net/PISA")
 client = AsyncIOMotorClient(MONGO_URI)
 db = client["PISA"]
 
